@@ -20,11 +20,12 @@ function drawRoulette() {
     ctx.translate(radius, radius);
     ctx.rotate(angle);
 
+    const colors = ["#ffed67", "#fecd67", "#ef4649", "#fc78a5", "#aa5590", "#5a5490", "#4e80c9", "#50ccf1", "#4fad52", "#b0dd42"];
     for (let i = 0; i < sectors; i++) {
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.arc(0, 0, radius, i * anglePerSector, (i + 1) * anglePerSector);
-        ctx.fillStyle = i % 2 === 0 ? "#ffcc00" : "#ff6600";
+        ctx.fillStyle = colors[i % colors.length];
         ctx.fill();
         ctx.stroke();
 
@@ -33,28 +34,29 @@ function drawRoulette() {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
+        // テキストの位置と向きを調整
         const textAngle = (i + 0.5) * anglePerSector;
-        const textX = Math.cos(textAngle) * radius * 0.7;
-        const textY = Math.sin(textAngle) * radius * 0.7;
-        ctx.fillText(numbers[i], textX, textY);
+        const textX = Math.cos(textAngle) * radius * 0.8;
+        const textY = Math.sin(textAngle) * radius * 0.8;
+        ctx.save();
+        ctx.translate(textX, textY);
+        ctx.rotate(textAngle + Math.PI / 2);
+        ctx.fillText(numbers[i], 0, 0);
+        ctx.restore();
     }
 
     ctx.restore();
 
-    // 矢印の描画
-    drawArrow();
-}
-
-// 矢印を描画（上向き固定）
-function drawArrow() {
+    // 矢印を描画（ルーレットの回転に影響されないように固定）
     ctx.fillStyle = "#000";
     ctx.beginPath();
-    ctx.moveTo(radius - 10, 10);
-    ctx.lineTo(radius + 10, 10);
+    ctx.moveTo(radius - 10, -10);
+    ctx.lineTo(radius + 10, -10);
     ctx.lineTo(radius, 30);
     ctx.closePath();
     ctx.fill();
 }
+
 
 // ルーレット回転処理
 function spin() {
@@ -87,7 +89,11 @@ function determineResult() {
     // 上方向が指すセクターを計算
     const index = Math.floor(((adjustedAngle - Math.PI / 2 +  Math.PI ) % (2 * Math.PI)) / anglePerSector);
 
-    const winningNumber = numbers[(sectors - index) % sectors] - 1;
+    let winningNumber = numbers[(sectors - index) % sectors] - 1;
+    // 10を指すときは10と表示
+    if (winningNumber === 0) {
+        winningNumber = 10;
+    }
     resultText.textContent = `結果: ${winningNumber}`;
     controlButton.textContent = "次のプレイヤーへ";
     controlButton.onclick = reset;
